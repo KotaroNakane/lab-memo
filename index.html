@@ -1,0 +1,666 @@
+<!doctype html>
+<html lang="ja">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>研究テーマメモ</title>
+
+    <!-- MathJax (TeX) -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            },
+            options: { skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'] }
+        };
+    </script>
+    <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+
+    <style>
+        :root {
+            color-scheme: light;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+            margin: 0;
+        }
+
+        header {
+            padding: 18px 16px;
+            border-bottom: 1px solid #e5e5e5;
+        }
+
+        main {
+            max-width: 980px;
+            margin: 0 auto;
+            padding: 16px;
+            display: grid;
+            gap: 14px;
+        }
+
+        .card {
+            border: 1px solid #e5e5e5;
+            border-radius: 12px;
+            padding: 14px;
+        }
+
+        .row {
+            display: grid;
+            gap: 10px;
+            grid-template-columns: 1fr;
+        }
+
+        @media (min-width: 900px) {
+            .row {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        input,
+        textarea,
+        button {
+            font: inherit;
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: 1px solid #d8d8d8;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        textarea {
+            min-height: 150px;
+            resize: vertical;
+        }
+
+        button {
+            width: auto;
+            cursor: pointer;
+        }
+
+        .btns {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .muted {
+            color: #666;
+            font-size: 0.92rem;
+        }
+
+        .list {
+            display: grid;
+            gap: 10px;
+        }
+
+        .item-head {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            align-items: start;
+        }
+
+        .item-title {
+            font-weight: 800;
+            margin: 0;
+        }
+
+        .item-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .render {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px dashed #e0e0e0;
+        }
+
+        .search {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+            flex-wrap: wrap;
+        }
+
+        .search input {
+            max-width: 520px;
+        }
+
+        .small {
+            font-size: 0.86rem;
+        }
+
+        .mono {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        }
+
+        .pill {
+            font-size: 0.8rem;
+            color: #444;
+            border: 1px solid #ddd;
+            padding: 4px 8px;
+            border-radius: 999px;
+        }
+
+        .badges {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-top: 6px;
+        }
+
+        .badge {
+            font-size: 0.78rem;
+            padding: 4px 8px;
+            border-radius: 999px;
+            border: 1px solid #ddd;
+            background: #fafafa;
+        }
+
+        .label-grid {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .label-chip {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid #ddd;
+            border-radius: 999px;
+            padding: 6px 10px;
+            background: #fff;
+            user-select: none;
+        }
+
+        .label-chip input {
+            width: auto;
+            padding: 0;
+            border: none;
+        }
+
+        .error {
+            color: #b00020;
+            font-size: 0.9rem;
+            margin-top: 6px;
+        }
+
+        .link-wrap {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+        }
+
+        a.link {
+            font-size: 0.9rem;
+            text-decoration: none;
+            border-bottom: 1px dashed #bbb;
+        }
+
+        a.link:hover {
+            border-bottom-style: solid;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div
+            style="max-width:980px;margin:0 auto;display:flex;justify-content:space-between;gap:12px;align-items:baseline;flex-wrap:wrap;">
+            <div>
+                <div style="font-weight:900;font-size:1.2rem;">研究テーマのネタメモ（研究室共有）</div>
+                <div class="muted">※保存先：Google Sheets（GAS経由で同期）</div>
+            </div>
+            <div class="pill" id="countPill">0件</div>
+        </div>
+    </header>
+
+    <main>
+        <section class="card">
+            <div class="btns">
+                <button id="reload">同期（再読み込み）</button>
+                <span class="muted" id="syncStatus"></span>
+            </div>
+        </section>
+
+        <section class="card">
+            <div class="row">
+                <div>
+                    <label class="small">タイトル</label>
+                    <input id="title" placeholder="例: ロバスト推定×異常検知" />
+                </div>
+
+                <div class="search">
+                    <div style="flex:1;">
+                        <label class="small">検索（タイトル/本文/リンク）</label>
+                        <input id="q" placeholder="キーワードで絞り込み" />
+                    </div>
+                    <button id="clearQ" title="検索クリア">クリア</button>
+                </div>
+            </div>
+
+            <div style="margin-top:10px;">
+                <label class="small">ラベル（1つ以上必須 / 複数可）</label>
+                <div class="label-grid" id="labelPick"></div>
+                <div class="error" id="labelErr" style="display:none;">ラベルを1つ以上選択してください。</div>
+            </div>
+
+            <div style="margin-top:10px;">
+                <label class="small">参考リンク（任意 / 複数OK：改行またはカンマ区切り）</label>
+                <textarea id="links" placeholder="例:
+https://arxiv.org/abs/xxxx
+https://doi.org/10.xxxx/xxxx
+https://github.com/..."></textarea>
+                <div class="muted small" style="margin-top:6px;">
+                    http(s)から始まるURLのみ保存します（それ以外は弾きます）。
+                </div>
+            </div>
+
+            <div style="margin-top:10px;">
+                <label class="small">本文（TeX可）</label>
+                <textarea id="body" placeholder="例:
+アイデア: 〜
+数式(行内): \( p(x|\theta) \)
+別行:
+$$
+\nabla_\theta \log p(x|\theta)
+$$"></textarea>
+            </div>
+
+            <div class="btns" style="margin-top:10px;">
+                <button id="add">追加</button>
+                <button id="update" disabled>更新</button>
+                <button id="cancel" disabled>編集解除</button>
+                <span class="muted" id="status"></span>
+            </div>
+        </section>
+
+        <section class="card">
+            <div class="row">
+                <div>
+                    <label class="small">ラベルで絞り込み（一覧側）</label>
+                    <div class="label-grid" id="labelFilter"></div>
+                    <div class="muted small" style="margin-top:6px;">
+                        ※ 選択したラベルの<strong>いずれか</strong>を含むメモを表示します（OR絞り込み）。
+                    </div>
+                </div>
+                <div>
+                    <label class="small">注意</label>
+                    <div class="muted small" style="margin-top:8px;">
+                        研究室外にURLを共有しないでください（GAS側で許可メール制限も可能）。
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="card">
+            <div class="list" id="list"></div>
+            <div class="muted" id="empty" style="display:none;">まだメモがありません。上から追加してください。</div>
+        </section>
+    </main>
+
+    <script>
+        const API_URL = "https://script.google.com/a/macros/stu.hosei.ac.jp/s/AKfycbwpEud1_6fSJZKLwlXEzuUhRXHgadf25x90canuJvvXmTAQPWaoFCp66RgZlsjT5r-EjQ/exec";
+
+        const LABELS = [
+            "推定・予測・統計学全般",
+            "能力評価",
+            "信頼性",
+            "感染症拡大予測",
+            "可視化・アプリケーション",
+            "その他"
+        ];
+
+        const $ = (id) => document.getElementById(id);
+
+        const state = {
+            memos: [],
+            editingId: null,
+            query: "",
+            filterLabels: new Set()
+        };
+
+        function escapeHTML(str) {
+            return String(str ?? "")
+                .replaceAll("&", "&amp;")
+                .replaceAll("<", "&lt;")
+                .replaceAll(">", "&gt;")
+                .replaceAll('"', "&quot;")
+                .replaceAll("'", "&#039;");
+        }
+
+        function setStatus(msg) {
+            $("status").textContent = msg || "";
+            if (msg) setTimeout(() => { $("status").textContent = ""; }, 1200);
+        }
+
+        function setSyncStatus(msg) {
+            $("syncStatus").textContent = msg || "";
+        }
+
+        function buildLabelChips(containerId, onChange) {
+            const root = $(containerId);
+            root.innerHTML = "";
+            for (const name of LABELS) {
+                const label = document.createElement("label");
+                label.className = "label-chip";
+                const cb = document.createElement("input");
+                cb.type = "checkbox";
+                cb.value = name;
+                cb.addEventListener("change", onChange);
+                const span = document.createElement("span");
+                span.textContent = name;
+                label.appendChild(cb);
+                label.appendChild(span);
+                root.appendChild(label);
+            }
+        }
+
+        function getPickedLabels(containerId) {
+            const boxes = Array.from(document.querySelectorAll(`#${containerId} input[type="checkbox"]`));
+            return boxes.filter(b => b.checked).map(b => b.value);
+        }
+
+        function setPickedLabels(containerId, labels) {
+            const set = new Set(labels || []);
+            const boxes = Array.from(document.querySelectorAll(`#${containerId} input[type="checkbox"]`));
+            for (const b of boxes) b.checked = set.has(b.value);
+        }
+
+        function validateLabelsOrShowError(labels) {
+            const ok = (labels && labels.length >= 1);
+            $("labelErr").style.display = ok ? "none" : "block";
+            return ok;
+        }
+
+        function normalizeLinks(input) {
+            const parts = (input || "")
+                .split(/[\n,]+/g)
+                .map(s => s.trim())
+                .filter(Boolean);
+
+            // http/https のみ許可
+            const out = [];
+            const seen = new Set();
+            for (const u of parts) {
+                if (!/^https?:\/\/.+/i.test(u)) {
+                    throw new Error("URLは http(s) から始めてください: " + u);
+                }
+                const k = u.toLowerCase();
+                if (!seen.has(k)) { seen.add(k); out.push(u); }
+            }
+            return out;
+        }
+
+        // ===== API =====
+        async function apiGetMemos() {
+            const res = await fetch(API_URL, { method: "GET", credentials: "include" });
+            const data = await res.json();
+            if (!data.ok) throw new Error(data.error || "GET failed");
+            return data.memos || [];
+        }
+
+        async function apiPost(bodyObj) {
+            const res = await fetch(API_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(bodyObj),
+                credentials: "include"
+            });
+            const data = await res.json();
+            if (!data.ok) throw new Error(data.error || "POST failed");
+            return data;
+        }
+
+        async function sync() {
+            try {
+                setSyncStatus("同期中…");
+                state.memos = await apiGetMemos();
+                setSyncStatus("同期しました");
+                render();
+            } catch (e) {
+                console.error(e);
+                setSyncStatus("同期に失敗: " + e.message);
+            }
+        }
+
+        // ===== Filtering =====
+        function labelPass(memo) {
+            if (state.filterLabels.size === 0) return true;
+            const memoLabels = new Set(memo.labels || []);
+            for (const l of state.filterLabels) {
+                if (memoLabels.has(l)) return true; // OR
+            }
+            return false;
+        }
+
+        function queryPass(memo) {
+            const q = state.query.trim().toLowerCase();
+            if (!q) return true;
+            const hay = [
+                memo.title || "",
+                memo.body || "",
+                (memo.links || []).join(" ")
+            ].join("\n").toLowerCase();
+            return hay.includes(q);
+        }
+
+        function filteredMemos() {
+            return (state.memos || []).filter(m => labelPass(m) && queryPass(m));
+        }
+
+        // ===== Render =====
+        function render() {
+            const list = $("list");
+            list.innerHTML = "";
+
+            const memos = filteredMemos()
+                .slice()
+                .sort((a, b) => (b.updatedAt || b.createdAt).localeCompare(a.updatedAt || a.createdAt));
+
+            $("countPill").textContent = `${memos.length}件`;
+            $("empty").style.display = memos.length ? "none" : "block";
+
+            for (const m of memos) {
+                const card = document.createElement("div");
+                card.className = "card";
+                card.style.padding = "12px";
+
+                const head = document.createElement("div");
+                head.className = "item-head";
+
+                const left = document.createElement("div");
+                const h = document.createElement("p");
+                h.className = "item-title";
+                h.textContent = m.title || "(無題)";
+
+                const badges = document.createElement("div");
+                badges.className = "badges";
+                for (const l of (m.labels || [])) {
+                    const b = document.createElement("span");
+                    b.className = "badge";
+                    b.textContent = l;
+                    badges.appendChild(b);
+                }
+
+                const meta = document.createElement("div");
+                meta.className = "muted small";
+                meta.textContent = `作成: ${m.createdAt || ""}${m.updatedAt ? " / 更新: " + m.updatedAt : ""}`;
+
+                left.appendChild(h);
+                left.appendChild(badges);
+                left.appendChild(meta);
+
+                const actions = document.createElement("div");
+                actions.className = "item-actions";
+
+                const btnEdit = document.createElement("button");
+                btnEdit.textContent = "編集";
+                btnEdit.onclick = () => startEdit(m.id);
+
+                const btnDel = document.createElement("button");
+                btnDel.textContent = "削除";
+                btnDel.onclick = () => removeMemo(m.id, m.title);
+
+                actions.appendChild(btnEdit);
+                actions.appendChild(btnDel);
+
+                head.appendChild(left);
+                head.appendChild(actions);
+
+                // Links
+                const linkWrap = document.createElement("div");
+                linkWrap.className = "link-wrap";
+                const links = (m.links || []).filter(Boolean);
+                for (const u of links) {
+                    const a = document.createElement("a");
+                    a.className = "link";
+                    a.href = u;
+                    a.target = "_blank";
+                    a.rel = "noopener noreferrer";
+                    a.textContent = u;
+                    linkWrap.appendChild(a);
+                }
+
+                const body = document.createElement("div");
+                body.className = "render";
+                body.innerHTML = escapeHTML(m.body || "").replaceAll("\n", "<br>");
+
+                card.appendChild(head);
+                if (links.length) card.appendChild(linkWrap);
+                card.appendChild(body);
+
+                list.appendChild(card);
+            }
+
+            // MathJax typeset
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                MathJax.typesetClear();
+                MathJax.typesetPromise();
+            }
+        }
+
+        // ===== Form actions =====
+        function resetForm() {
+            $("title").value = "";
+            $("body").value = "";
+            $("links").value = "";
+            setPickedLabels("labelPick", []);
+            $("labelErr").style.display = "none";
+            state.editingId = null;
+            $("update").disabled = true;
+            $("cancel").disabled = true;
+            $("add").disabled = false;
+        }
+
+        function startEdit(id) {
+            const m = (state.memos || []).find(x => x.id === id);
+            if (!m) return;
+            state.editingId = id;
+            $("title").value = m.title || "";
+            $("body").value = m.body || "";
+            $("links").value = (m.links || []).join("\n");
+            setPickedLabels("labelPick", m.labels || []);
+            $("labelErr").style.display = "none";
+
+            $("update").disabled = false;
+            $("cancel").disabled = false;
+            $("add").disabled = true;
+            setStatus("編集中");
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+
+        async function addMemo() {
+            try {
+                const title = $("title").value.trim();
+                const body = $("body").value.trim();
+                const labels = getPickedLabels("labelPick");
+                if (!validateLabelsOrShowError(labels)) return;
+
+                const links = normalizeLinks($("links").value); // 任意（空なら []）
+                await apiPost({ action: "add", memo: { title, body, labels, links } });
+
+                resetForm();
+                await sync();
+                setStatus("追加しました");
+            } catch (e) {
+                console.error(e);
+                alert("追加に失敗: " + e.message);
+            }
+        }
+
+        async function updateMemo() {
+            try {
+                const id = state.editingId;
+                if (!id) return;
+
+                const title = $("title").value.trim();
+                const body = $("body").value.trim();
+                const labels = getPickedLabels("labelPick");
+                if (!validateLabelsOrShowError(labels)) return;
+
+                const links = normalizeLinks($("links").value);
+                await apiPost({ action: "update", memo: { id, title, body, labels, links } });
+
+                resetForm();
+                await sync();
+                setStatus("更新しました");
+            } catch (e) {
+                console.error(e);
+                alert("更新に失敗: " + e.message);
+            }
+        }
+
+        async function removeMemo(id, title) {
+            try {
+                if (!confirm(`「${title || "無題"}」を削除しますか？`)) return;
+                await apiPost({ action: "delete", id });
+                if (state.editingId === id) resetForm();
+                await sync();
+                setStatus("削除しました");
+            } catch (e) {
+                console.error(e);
+                alert("削除に失敗: " + e.message);
+            }
+        }
+
+        // ===== Events =====
+        $("add").onclick = addMemo;
+        $("update").onclick = updateMemo;
+        $("cancel").onclick = () => { resetForm(); setStatus("編集解除"); };
+        $("reload").onclick = sync;
+
+        $("q").addEventListener("input", (e) => {
+            state.query = e.target.value || "";
+            render();
+        });
+        $("clearQ").onclick = () => { $("q").value = ""; state.query = ""; render(); };
+
+        // init label chips
+        buildLabelChips("labelPick", () => {
+            const labels = getPickedLabels("labelPick");
+            validateLabelsOrShowError(labels);
+        });
+
+        buildLabelChips("labelFilter", (e) => {
+            const cb = e.target;
+            if (cb.checked) state.filterLabels.add(cb.value);
+            else state.filterLabels.delete(cb.value);
+            render();
+        });
+
+        // initial sync
+        sync();
+    </script>
+</body>
+
+</html>
